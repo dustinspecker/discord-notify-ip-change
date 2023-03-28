@@ -21,12 +21,14 @@ func TestRetrievePublicIP(t *testing.T) {
 	discordNotifyIPChangeCLI, err := gexec.Build("github.com/dustinspecker/discord-notify-ip-change/cmd/discord-notify-ip-change")
 	g.Expect(err).To(gomega.BeNil(), "failed to build discord-notify-ip-change")
 
+	ghttptest := ghttp.NewGHTTPWithGomega(g)
+
 	server := ghttp.NewServer()
 	defer server.Close()
 
 	server.AppendHandlers(
 		ghttp.CombineHandlers(
-			ghttp.RespondWith(http.StatusOK, `{"ip": "192.168.0.1"}"`),
+			ghttptest.RespondWith(http.StatusOK, `{"ip": "192.168.0.1"}"`),
 		),
 	)
 
