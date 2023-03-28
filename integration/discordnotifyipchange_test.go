@@ -23,16 +23,16 @@ func TestRetrievePublicIP(t *testing.T) {
 
 	ghttptest := ghttp.NewGHTTPWithGomega(g)
 
-	server := ghttp.NewServer()
-	defer server.Close()
+	ipServer := ghttp.NewServer()
+	defer ipServer.Close()
 
-	server.AppendHandlers(
+	ipServer.AppendHandlers(
 		ghttp.CombineHandlers(
 			ghttptest.RespondWith(http.StatusOK, `{"ip": "192.168.0.1"}"`),
 		),
 	)
 
-	command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", server.URL(), "-timeout", "5s")
+	command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", ipServer.URL(), "-timeout", "5s")
 	session, err := gexec.Start(command, os.Stdout, os.Stderr)
 	g.Expect(err).To(gomega.BeNil(), "error while running command")
 
@@ -40,7 +40,7 @@ func TestRetrievePublicIP(t *testing.T) {
 
 	g.Expect(session.Out).To(gbytes.Say("192.168.0.1"), "should print ip address")
 
-	g.Expect(server.ReceivedRequests()).Should(gomega.HaveLen(1), "expected only 1 request made to server")
+	g.Expect(ipServer.ReceivedRequests()).Should(gomega.HaveLen(1), "expected only 1 request made to server")
 }
 
 func TestErrorIsReturnedWhenUnableToGetIP(t *testing.T) {
