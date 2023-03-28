@@ -30,7 +30,7 @@ func TestRetrievePublicIP(t *testing.T) {
 		),
 	)
 
-	command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", server.URL())
+	command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", server.URL(), "-timeout", "5s")
 	session, err := gexec.Start(command, os.Stdout, os.Stderr)
 	g.Expect(err).To(gomega.BeNil(), "error while running command")
 
@@ -47,11 +47,26 @@ func TestErrorIsReturnedWhenUnableToGetIP(t *testing.T) {
 	discordNotifyIPChangeCLI, err := gexec.Build("github.com/dustinspecker/discord-notify-ip-change/cmd/discord-notify-ip-change")
 	g.Expect(err).To(gomega.BeNil(), "failed to build discord-notify-ip-change")
 
-	command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", "")
+	command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", "", "-timeout", "5s")
 	session, err := gexec.Start(command, os.Stdout, os.Stderr)
 	g.Expect(err).To(gomega.BeNil(), "error while running command")
 
 	g.Eventually(session).Should(gexec.Exit(1), "command should exit with non-zero return code")
 
 	g.Expect(session.Err).To(gbytes.Say(`.*error getting public IP: error getting URL.*`), "should print error")
+}
+
+func TestErrorIsReturnedWhenUnableToParseTimeout(t *testing.T) {
+	g := gomega.NewWithT(t)
+
+	discordNotifyIPChangeCLI, err := gexec.Build("github.com/dustinspecker/discord-notify-ip-change/cmd/discord-notify-ip-change")
+	g.Expect(err).To(gomega.BeNil(), "failed to build discord-notify-ip-change")
+
+	command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", "", "-timeout", "10f")
+	session, err := gexec.Start(command, os.Stdout, os.Stderr)
+	g.Expect(err).To(gomega.BeNil(), "error while running command")
+
+	g.Eventually(session).Should(gexec.Exit(1), "command should exit with non-zero return code")
+
+	g.Expect(session.Err).To(gbytes.Say(`.*unable to parse timeout: time: unknown unit "f" in duration "10f".*`), "should print error")
 }

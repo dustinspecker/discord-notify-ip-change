@@ -4,14 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 type ipResponse struct {
 	IP string
 }
 
-func Get(url string) (string, error) {
-	response, err := http.Get(url)
+func Get(url string, timeout time.Duration) (string, error) {
+	client := http.Client{
+		Timeout: timeout,
+	}
+	response, err := client.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("error getting URL %q: %w", url, err)
 	}
