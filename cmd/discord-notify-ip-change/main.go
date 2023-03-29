@@ -1,15 +1,19 @@
 package main
 
 import (
+	"bytes"
 	"flag"
-	"fmt"
 	"log"
 	"time"
 
+	"github.com/dustinspecker/discord-notify-ip-change/internal/discord"
 	"github.com/dustinspecker/discord-notify-ip-change/internal/ip"
 )
 
 func main() {
+	var discordWebhookURL string
+	flag.StringVar(&discordWebhookURL, "discord-webhook-url", "", "Discord Webhook URL to send message to")
+
 	var ipURL string
 	flag.StringVar(&ipURL, "ip-url", "", `URL to retrieve public IP in format of {"ip": "0.0.0.0"}`)
 
@@ -28,5 +32,7 @@ func main() {
 		log.Fatalf("error getting public IP: %v", err)
 	}
 
-	fmt.Println(publicIp)
+	if err := discord.SendMessage(discordWebhookURL, bytes.NewReader([]byte(publicIp))); err != nil {
+		log.Fatalf("error sending message to discord: %v", err)
+	}
 }

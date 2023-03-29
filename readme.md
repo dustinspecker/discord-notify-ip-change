@@ -9,7 +9,7 @@
 ## Usage
 
 ```bash
-./.bin/discord-notify-ip-change -ip-url "https://api.ipify.org/?format=json"
+./.bin/discord-notify-ip-change -ip-url "https://api.ipify.org/?format=json" -discord-webhook-url "https://discord.com/webhooks/webhooktoken"
 ```
 
 ## Test
