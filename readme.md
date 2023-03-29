@@ -16,6 +16,7 @@
 
 ```bash
 make test
+go install github.com/onsi/ginkgo/v2/ginkgo
 make int-test
 ```
 
