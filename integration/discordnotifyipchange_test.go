@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"net/http"
-	"os"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -38,7 +37,7 @@ var _ = Describe("discord-notify-ip-change", func() {
 		)
 
 		command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", ipServer.URL(), "-discord-webhook-url", discordServer.URL(), "-timeout", "5s")
-		session, err := gexec.Start(command, os.Stdout, os.Stderr)
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).To(BeNil(), "error while running command")
 
 		Eventually(session).Should(gexec.Exit(0), "command should exit with 0 return code")
@@ -52,7 +51,7 @@ var _ = Describe("discord-notify-ip-change", func() {
 		Expect(err).To(BeNil(), "failed to build discord-notify-ip-change")
 
 		command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", "", "-timeout", "5s")
-		session, err := gexec.Start(command, os.Stdout, os.Stderr)
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).To(BeNil(), "error while running command")
 
 		Eventually(session).Should(gexec.Exit(1), "command should exit with non-zero return code")
@@ -74,7 +73,7 @@ var _ = Describe("discord-notify-ip-change", func() {
 		)
 
 		command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", ipServer.URL(), "-discord-webhook-url", "", "-timeout", "5s")
-		session, err := gexec.Start(command, os.Stdout, os.Stderr)
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).To(BeNil(), "error while running command")
 
 		Eventually(session).Should(gexec.Exit(1), "command should exit with 1 return code")
@@ -97,7 +96,7 @@ var _ = Describe("discord-notify-ip-change", func() {
 		)
 
 		command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", ipServer.URL(), "-discord-webhook-url", "", "-timeout", "5s", "-format", "{{ .}")
-		session, err := gexec.Start(command, os.Stdout, os.Stderr)
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).To(BeNil(), "error while running command")
 
 		Eventually(session).Should(gexec.Exit(1), "command should exit with 1 return code")
@@ -111,7 +110,7 @@ var _ = Describe("discord-notify-ip-change", func() {
 		Expect(err).To(BeNil(), "failed to build discord-notify-ip-change")
 
 		command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", "", "-timeout", "10f")
-		session, err := gexec.Start(command, os.Stdout, os.Stderr)
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).To(BeNil(), "error while running command")
 
 		Eventually(session).Should(gexec.Exit(1), "command should exit with non-zero return code")
