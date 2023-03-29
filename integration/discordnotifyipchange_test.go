@@ -12,18 +12,25 @@ import (
 )
 
 var _ = Describe("discord-notify-ip-change", func() {
-	It("sends message to Discord webhook", func() {
-		discordNotifyIPChangeCLI, err := gexec.Build("github.com/dustinspecker/discord-notify-ip-change/cmd/discord-notify-ip-change")
-		Expect(err).To(BeNil(), "failed to build discord-notify-ip-change")
+	var ipServer *ghttp.Server
 
-		ipServer := ghttp.NewServer()
-		defer ipServer.Close()
+	BeforeEach(func() {
+		ipServer = ghttp.NewServer()
 
 		ipServer.AppendHandlers(
 			ghttp.CombineHandlers(
 				ghttp.RespondWith(http.StatusOK, `{"ip": "192.168.0.1"}"`),
 			),
 		)
+	})
+
+	AfterEach(func() {
+		ipServer.Close()
+	})
+
+	It("sends message to Discord webhook", func() {
+		discordNotifyIPChangeCLI, err := gexec.Build("github.com/dustinspecker/discord-notify-ip-change/cmd/discord-notify-ip-change")
+		Expect(err).To(BeNil(), "failed to build discord-notify-ip-change")
 
 		discordServer := ghttp.NewServer()
 		defer discordServer.Close()
@@ -63,15 +70,6 @@ var _ = Describe("discord-notify-ip-change", func() {
 		discordNotifyIPChangeCLI, err := gexec.Build("github.com/dustinspecker/discord-notify-ip-change/cmd/discord-notify-ip-change")
 		Expect(err).To(BeNil(), "failed to build discord-notify-ip-change")
 
-		ipServer := ghttp.NewServer()
-		defer ipServer.Close()
-
-		ipServer.AppendHandlers(
-			ghttp.CombineHandlers(
-				ghttp.RespondWith(http.StatusOK, `{"ip": "192.168.0.1"}"`),
-			),
-		)
-
 		command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", ipServer.URL(), "-discord-webhook-url", "", "-timeout", "5s")
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).To(BeNil(), "error while running command")
@@ -85,15 +83,6 @@ var _ = Describe("discord-notify-ip-change", func() {
 	It("returns error when unable to render message", func() {
 		discordNotifyIPChangeCLI, err := gexec.Build("github.com/dustinspecker/discord-notify-ip-change/cmd/discord-notify-ip-change")
 		Expect(err).To(BeNil(), "failed to build discord-notify-ip-change")
-
-		ipServer := ghttp.NewServer()
-		defer ipServer.Close()
-
-		ipServer.AppendHandlers(
-			ghttp.CombineHandlers(
-				ghttp.RespondWith(http.StatusOK, `{"ip": "192.168.0.1"}"`),
-			),
-		)
 
 		command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", ipServer.URL(), "-discord-webhook-url", "", "-timeout", "5s", "-format", "{{ .}")
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
