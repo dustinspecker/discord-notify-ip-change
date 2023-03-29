@@ -40,9 +40,7 @@ var _ = Describe("discord-notify-ip-change", func() {
 			),
 		)
 
-		command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", ipServer.URL(), "-discord-webhook-url", discordServer.URL(), "-timeout", "5s")
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).To(BeNil(), "error while running command")
+		session := runCommand("-ip-url", ipServer.URL(), "-discord-webhook-url", discordServer.URL(), "-timeout", "5s")
 
 		Eventually(session).Should(gexec.Exit(0), "command should exit with 0 return code")
 
@@ -51,9 +49,7 @@ var _ = Describe("discord-notify-ip-change", func() {
 	})
 
 	It("returns error when unable to get IP", func() {
-		command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", "", "-timeout", "5s")
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).To(BeNil(), "error while running command")
+		session := runCommand("-ip-url", "", "-timeout", "5s")
 
 		Eventually(session).Should(gexec.Exit(1), "command should exit with non-zero return code")
 
@@ -61,9 +57,7 @@ var _ = Describe("discord-notify-ip-change", func() {
 	})
 
 	It("returns error when unable to send message", func() {
-		command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", ipServer.URL(), "-discord-webhook-url", "", "-timeout", "5s")
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).To(BeNil(), "error while running command")
+		session := runCommand("-ip-url", ipServer.URL(), "-discord-webhook-url", "", "-timeout", "5s")
 
 		Eventually(session).Should(gexec.Exit(1), "command should exit with 1 return code")
 		Expect(session.Err).To(gbytes.Say(`.*error sending message to discord: error sending message: Post "": unsupported protocol scheme "".*`), "should print error")
@@ -72,9 +66,7 @@ var _ = Describe("discord-notify-ip-change", func() {
 	})
 
 	It("returns error when unable to render message", func() {
-		command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", ipServer.URL(), "-discord-webhook-url", "", "-timeout", "5s", "-format", "{{ .}")
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).To(BeNil(), "error while running command")
+		session := runCommand("-ip-url", ipServer.URL(), "-discord-webhook-url", "", "-timeout", "5s", "-format", "{{ .}")
 
 		Eventually(session).Should(gexec.Exit(1), "command should exit with 1 return code")
 		Expect(session.Err).To(gbytes.Say(`.*error rendering message: error parsing template: template: message:1: bad character.*`), "should print error")
@@ -83,12 +75,18 @@ var _ = Describe("discord-notify-ip-change", func() {
 	})
 
 	It("returns error when unable to parse timeout", func() {
-		command := exec.Command(discordNotifyIPChangeCLI, "-ip-url", "", "-timeout", "10f")
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).To(BeNil(), "error while running command")
+		session := runCommand("-ip-url", "", "-timeout", "10f")
 
 		Eventually(session).Should(gexec.Exit(1), "command should exit with non-zero return code")
 
 		Expect(session.Err).To(gbytes.Say(`.*unable to parse timeout: time: unknown unit "f" in duration "10f".*`), "should print error")
 	})
 })
+
+func runCommand(args ...string) *gexec.Session {
+	command := exec.Command(discordNotifyIPChangeCLI, args...)
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	ExpectWithOffset(1, err).To(BeNil(), "error while running command")
+
+	return session
+}
