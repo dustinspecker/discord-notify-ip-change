@@ -5,4 +5,4 @@ test:
 	go test ./internal/...
 
 int-test:
-	ginkgo run ./integration/
+	ginkgo run -p ./integration/
