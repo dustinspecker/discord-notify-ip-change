@@ -21,6 +21,9 @@ func main() {
 	var format string
 	flag.StringVar(&format, "format", `{"content": "{{ .PublicIP }}"}`, "template for rendering message to send to Discord")
 
+	var interval string
+	flag.StringVar(&interval, "interval", "4h", "time to wait between checking if IP has changed")
+
 	var ipURL string
 	flag.StringVar(&ipURL, "ip-url", "", `URL to retrieve public IP in format of {"ip": "0.0.0.0"}`)
 
@@ -29,22 +32,31 @@ func main() {
 
 	flag.Parse()
 
+	parsedInterval, err := time.ParseDuration(interval)
+	if err != nil {
+		log.Fatalf("unable to parse interval: %v", err)
+	}
+
 	parsedTimeout, err := time.ParseDuration(timeout)
 	if err != nil {
 		log.Fatalf("unable to parse timeout: %v", err)
 	}
 
-	publicIp, err := ip.Get(ipURL, parsedTimeout)
-	if err != nil {
-		log.Fatalf("error getting public IP: %v", err)
-	}
+	for {
+		publicIp, err := ip.Get(ipURL, parsedTimeout)
+		if err != nil {
+			log.Printf("error getting public IP: %v", err)
+		}
 
-	renderedMessageStr, err := message.Render(format, messageData{PublicIP: publicIp})
-	if err != nil {
-		log.Fatalf("error rendering message: %v", err)
-	}
+		renderedMessageStr, err := message.Render(format, messageData{PublicIP: publicIp})
+		if err != nil {
+			log.Printf("error rendering message: %v", err)
+		}
 
-	if err := discord.SendMessage(discordWebhookURL, renderedMessageStr); err != nil {
-		log.Fatalf("error sending message to discord: %v", err)
+		if err := discord.SendMessage(discordWebhookURL, renderedMessageStr); err != nil {
+			log.Printf("error sending message to discord: %v", err)
+		}
+
+		time.Sleep(parsedInterval)
 	}
 }
