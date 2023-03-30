@@ -42,19 +42,25 @@ func main() {
 		log.Fatalf("unable to parse timeout: %v", err)
 	}
 
+	var lastPublicIP string
+
 	for {
 		publicIp, err := ip.Get(ipURL, parsedTimeout)
 		if err != nil {
 			log.Printf("error getting public IP: %v", err)
 		}
 
-		renderedMessageStr, err := message.Render(format, messageData{PublicIP: publicIp})
-		if err != nil {
-			log.Printf("error rendering message: %v", err)
-		}
+		if publicIp != lastPublicIP {
+			lastPublicIP = publicIp
 
-		if err := discord.SendMessage(discordWebhookURL, renderedMessageStr); err != nil {
-			log.Printf("error sending message to discord: %v", err)
+			renderedMessageStr, err := message.Render(format, messageData{PublicIP: publicIp})
+			if err != nil {
+				log.Printf("error rendering message: %v", err)
+			}
+
+			if err := discord.SendMessage(discordWebhookURL, renderedMessageStr); err != nil {
+				log.Printf("error sending message to discord: %v", err)
+			}
 		}
 
 		time.Sleep(parsedInterval)

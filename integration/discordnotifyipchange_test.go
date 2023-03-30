@@ -52,7 +52,7 @@ var _ = Describe("discord-notify-ip-change", func() {
 	It("continuosly sends message to Discord webhook", func() {
 		ipServer.AppendHandlers(
 			ghttp.CombineHandlers(
-				ghttp.RespondWith(http.StatusOK, `{"ip": "192.168.0.1"}"`),
+				ghttp.RespondWith(http.StatusOK, `{"ip": "192.168.0.2"}"`),
 			),
 		)
 
@@ -68,13 +68,48 @@ var _ = Describe("discord-notify-ip-change", func() {
 			ghttp.CombineHandlers(
 				ghttp.VerifyContentType("application/json"),
 				ghttp.VerifyRequest(http.MethodPost, "/"),
-				ghttp.VerifyBody([]byte(`{"content": "192.168.0.1"}`)),
+				ghttp.VerifyBody([]byte(`{"content": "192.168.0.2"}`)),
 			),
 		)
 
 		session := runCommand("-ip-url", ipServer.URL(), "-discord-webhook-url", discordServer.URL(), "-interval", "1s")
 
 		Eventually(ipServer.ReceivedRequests).Should(HaveLen(2), "expected requests to continuously made to server")
+		Eventually(discordServer.ReceivedRequests).Should(HaveLen(2), "expected message to continuously be sent to discord")
+
+		Expect(session.ExitCode()).To(Equal(-1), "should continously run and not exit")
+		session.Terminate().Wait()
+	})
+
+	It("only sends message to Discord webhook if ip has changed", func() {
+		ipServer.AppendHandlers(
+			ghttp.CombineHandlers(
+				ghttp.RespondWith(http.StatusOK, `{"ip": "192.168.0.1"}"`),
+			),
+			ghttp.CombineHandlers(
+				ghttp.RespondWith(http.StatusOK, `{"ip": "192.168.0.2"}"`),
+			),
+		)
+
+		discordServer := ghttp.NewServer()
+		defer discordServer.Close()
+
+		discordServer.AppendHandlers(
+			ghttp.CombineHandlers(
+				ghttp.VerifyContentType("application/json"),
+				ghttp.VerifyRequest(http.MethodPost, "/"),
+				ghttp.VerifyBody([]byte(`{"content": "192.168.0.1"}`)),
+			),
+			ghttp.CombineHandlers(
+				ghttp.VerifyContentType("application/json"),
+				ghttp.VerifyRequest(http.MethodPost, "/"),
+				ghttp.VerifyBody([]byte(`{"content": "192.168.0.2"}`)),
+			),
+		)
+
+		session := runCommand("-ip-url", ipServer.URL(), "-discord-webhook-url", discordServer.URL(), "-interval", "1s")
+
+		Eventually(ipServer.ReceivedRequests).Should(HaveLen(3), "expected requests to continuously made to server")
 		Eventually(discordServer.ReceivedRequests).Should(HaveLen(2), "expected message to continuously be sent to discord")
 
 		Expect(session.ExitCode()).To(Equal(-1), "should continously run and not exit")
