@@ -1,4 +1,4 @@
-package message
+package internal
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-func Render(templateStr string, data any) (io.Reader, error) {
+func RenderMessage(templateStr string, data any) (io.Reader, error) {
 	var buffer bytes.Buffer
 
 	tmpl, err := template.New("message").Parse(templateStr)

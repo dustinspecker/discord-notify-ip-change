@@ -1,4 +1,4 @@
-package ip
+package internal
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ type ipResponse struct {
 	IP string
 }
 
-func Get(url string, timeout time.Duration) (string, error) {
+func GetIP(url string, timeout time.Duration) (string, error) {
 	client := http.Client{
 		Timeout: timeout,
 	}

@@ -5,9 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/dustinspecker/discord-notify-ip-change/internal/discord"
-	"github.com/dustinspecker/discord-notify-ip-change/internal/ip"
-	"github.com/dustinspecker/discord-notify-ip-change/internal/message"
+	"github.com/dustinspecker/discord-notify-ip-change/internal"
 )
 
 type messageData struct {
@@ -45,7 +43,7 @@ func main() {
 	var lastPublicIP string
 
 	for {
-		publicIp, err := ip.Get(ipURL, parsedTimeout)
+		publicIp, err := internal.GetIP(ipURL, parsedTimeout)
 		if err != nil {
 			log.Printf("error getting public IP: %v", err)
 		}
@@ -53,12 +51,12 @@ func main() {
 		if publicIp != lastPublicIP {
 			lastPublicIP = publicIp
 
-			renderedMessageStr, err := message.Render(format, messageData{PublicIP: publicIp})
+			renderedMessageStr, err := internal.RenderMessage(format, messageData{PublicIP: publicIp})
 			if err != nil {
 				log.Printf("error rendering message: %v", err)
 			}
 
-			if err := discord.SendMessage(discordWebhookURL, renderedMessageStr); err != nil {
+			if err := internal.SendMessage(discordWebhookURL, renderedMessageStr); err != nil {
 				log.Printf("error sending message to discord: %v", err)
 			}
 		}

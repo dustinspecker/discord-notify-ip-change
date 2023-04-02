@@ -1,4 +1,4 @@
-package message_test
+package internal_test
 
 import (
 	"io"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/onsi/gomega"
 
-	"github.com/dustinspecker/discord-notify-ip-change/internal/message"
+	"github.com/dustinspecker/discord-notify-ip-change/internal"
 )
 
 func TestRender(t *testing.T) {
@@ -33,7 +33,7 @@ func TestRender(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			g := gomega.NewWithT(t)
 
-			renderedMessage, err := message.Render(testCase.template, testCase.data)
+			renderedMessage, err := internal.RenderMessage(testCase.template, testCase.data)
 			g.Expect(err).To(gomega.BeNil(), "error rendering message")
 
 			renderedMessageStr, err := io.ReadAll(renderedMessage)
@@ -46,7 +46,7 @@ func TestRender(t *testing.T) {
 func TestRenderReturnsErrorForInvalidTemplate(t *testing.T) {
 	g := gomega.NewWithT(t)
 
-	_, err := message.Render("{{ . }", nil)
+	_, err := internal.RenderMessage("{{ . }", nil)
 
 	g.Expect(err).ToNot(gomega.BeNil(), "expected an error for a bad template")
 
@@ -56,7 +56,7 @@ func TestRenderReturnsErrorForInvalidTemplate(t *testing.T) {
 func TestRenderReturnsErrorWhenUnableToExecute(t *testing.T) {
 	g := gomega.NewWithT(t)
 
-	_, err := message.Render("{{ .IP }}", struct{}{})
+	_, err := internal.RenderMessage("{{ .IP }}", struct{}{})
 
 	g.Expect(err).ToNot(gomega.BeNil(), "expected an error when unable to execute template")
 
