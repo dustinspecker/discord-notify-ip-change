@@ -1,0 +1,23 @@
+name: discord-notify-ip-change
+on:
+  - push
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          cache-dependency-path: go.sum
+          go-version-file: go.mod
+      - name: Install Go dependencies
+        run: go mod download
+      - name: Run unit tests
+        run: make test
+      - name: Build
+        run: make build
+      - name: Install ginkgo
+        run: go install github.com/onsi/ginkgo/v2/ginkgo
+      - name: Run integration tests
+        run: make int-test
